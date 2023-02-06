@@ -308,9 +308,15 @@ class _DatePickerState extends State<_DatePickerComponent> {
                 bottomPadding: bottomPadding,
               ),
               child: GestureDetector(
-                child: Material(
-                  color: theme.backgroundColor,
-                  child: _renderPickerView(theme),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: Material(
+                    color: theme.backgroundColor,
+                    child: _renderPickerView(theme),
+                  ),
                 ),
               ),
             ),
@@ -332,7 +338,7 @@ class _DatePickerState extends State<_DatePickerComponent> {
       return Column(
         children: <Widget>[
           _renderTitleActionsView(theme),
-          itemView,
+          Expanded(child: SafeArea(child: itemView)),
         ],
       );
     }
@@ -351,9 +357,9 @@ class _DatePickerState extends State<_DatePickerComponent> {
     return Expanded(
       flex: layoutProportion,
       child: Container(
+        width: 100,
         padding: EdgeInsets.all(8.0),
         height: theme.containerHeight,
-        decoration: BoxDecoration(color: theme.backgroundColor),
         child: NotificationListener(
           onNotification: (ScrollNotification notification) {
             if (notification.depth == 0 &&
@@ -368,13 +374,13 @@ class _DatePickerState extends State<_DatePickerComponent> {
           },
           child: CupertinoPicker.builder(
             key: key,
-            backgroundColor: theme.backgroundColor,
             scrollController: scrollController as FixedExtentScrollController,
             itemExtent: theme.itemHeight,
             onSelectedItemChanged: (int index) {
               selectedChangedWhenScrolling(index);
             },
             useMagnifier: true,
+            selectionOverlay: null,
             itemBuilder: (BuildContext context, int index) {
               final content = stringAtIndexCB(index);
               if (content == null) {
@@ -397,137 +403,129 @@ class _DatePickerState extends State<_DatePickerComponent> {
   }
 
   Widget _renderItemView(DatePickerTheme theme) {
-    return Container(
-      color: theme.backgroundColor,
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              child: widget.pickerModel.layoutProportions()[0] > 0
-                  ? _renderColumnView(
-                      ValueKey(widget.pickerModel.currentLeftIndex()),
-                      theme,
-                      widget.pickerModel.leftStringAtIndex,
-                      leftScrollCtrl,
-                      widget.pickerModel.layoutProportions()[0], (index) {
-                      widget.pickerModel.setLeftIndex(index);
-                    }, (index) {
-                      setState(() {
-                        refreshScrollOffset();
-                        _notifyDateChanged();
-                      });
-                    })
-                  : null,
-            ),
-            Text(
-              widget.pickerModel.leftDivider(),
-              style: theme.itemStyle,
-            ),
-            Container(
-              child: widget.pickerModel.layoutProportions()[1] > 0
-                  ? _renderColumnView(
-                      ValueKey(widget.pickerModel.currentLeftIndex()),
-                      theme,
-                      widget.pickerModel.middleStringAtIndex,
-                      middleScrollCtrl,
-                      widget.pickerModel.layoutProportions()[1], (index) {
-                      widget.pickerModel.setMiddleIndex(index);
-                    }, (index) {
-                      setState(() {
-                        refreshScrollOffset();
-                        _notifyDateChanged();
-                      });
-                    })
-                  : null,
-            ),
-            Text(
-              widget.pickerModel.rightDivider(),
-              style: theme.itemStyle,
-            ),
-            Container(
-              child: widget.pickerModel.layoutProportions()[2] > 0
-                  ? _renderColumnView(
-                      ValueKey(widget.pickerModel.currentMiddleIndex() * 100 +
-                          widget.pickerModel.currentLeftIndex()),
-                      theme,
-                      widget.pickerModel.rightStringAtIndex,
-                      rightScrollCtrl,
-                      widget.pickerModel.layoutProportions()[2], (index) {
-                      widget.pickerModel.setRightIndex(index);
-                    }, (index) {
-                      setState(() {
-                        refreshScrollOffset();
-                        _notifyDateChanged();
-                      });
-                    })
-                  : null,
-            ),
-          ],
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                  child: Align(
+                      child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(height: 34, color: Color(0x2E747480))),
+              ))),
+              Container(
+                width: 200,
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Container(
+                        child: widget.pickerModel.layoutProportions()[0] > 0
+                            ? _renderColumnView(
+                                ValueKey(widget.pickerModel.currentLeftIndex()),
+                                theme,
+                                widget.pickerModel.leftStringAtIndex,
+                                leftScrollCtrl,
+                                widget.pickerModel.layoutProportions()[0],
+                                (index) {
+                                widget.pickerModel.setLeftIndex(index);
+                              }, (index) {
+                                setState(() {
+                                  refreshScrollOffset();
+                                  _notifyDateChanged();
+                                });
+                              })
+                            : null,
+                      ),
+                      Container(
+                        child: widget.pickerModel.layoutProportions()[1] > 0
+                            ? _renderColumnView(
+                                ValueKey(widget.pickerModel.currentLeftIndex()),
+                                theme,
+                                widget.pickerModel.middleStringAtIndex,
+                                middleScrollCtrl,
+                                widget.pickerModel.layoutProportions()[1],
+                                (index) {
+                                widget.pickerModel.setMiddleIndex(index);
+                              }, (index) {
+                                setState(() {
+                                  refreshScrollOffset();
+                                  _notifyDateChanged();
+                                });
+                              })
+                            : null,
+                      ),
+                      Container(
+                        child: widget.pickerModel.layoutProportions()[2] > 0
+                            ? _renderColumnView(
+                                ValueKey(
+                                    widget.pickerModel.currentMiddleIndex() *
+                                            100 +
+                                        widget.pickerModel.currentLeftIndex()),
+                                theme,
+                                widget.pickerModel.rightStringAtIndex,
+                                rightScrollCtrl,
+                                widget.pickerModel.layoutProportions()[2],
+                                (index) {
+                                widget.pickerModel.setRightIndex(index);
+                              }, (index) {
+                                setState(() {
+                                  refreshScrollOffset();
+                                  _notifyDateChanged();
+                                });
+                              })
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+        ...(theme.nextButton != null)
+            ? [
+                Column(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: theme.nextButton!(() {
+                          if (widget.route.onConfirm != null) {
+                            widget.route
+                                .onConfirm!(widget.pickerModel.finalTime()!);
+                          }
+                        })),
+                  ],
+                ),
+              ]
+            : []
+      ],
     );
   }
 
   // Title View
   Widget _renderTitleActionsView(DatePickerTheme theme) {
-    final done = _localeDone();
-    final cancel = _localeCancel();
-
     return Container(
-      height: theme.titleHeight,
       decoration: BoxDecoration(
         color: theme.headerColor ?? theme.backgroundColor,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Container(
-            height: theme.titleHeight,
-            child: CupertinoButton(
-              pressedOpacity: 0.3,
-              padding: EdgeInsetsDirectional.only(start: 16, top: 0),
-              child: Text(
-                '$cancel',
-                style: theme.cancelStyle,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                if (widget.route.onCancel != null) {
-                  widget.route.onCancel!();
-                }
-              },
-            ),
-          ),
-          Container(
-            height: theme.titleHeight,
-            child: CupertinoButton(
-              pressedOpacity: 0.3,
-              padding: EdgeInsetsDirectional.only(end: 16, top: 0),
-              child: Text(
-                '$done',
-                style: theme.doneStyle,
-              ),
-              onPressed: () {
-                Navigator.pop(context, widget.pickerModel.finalTime());
-                if (widget.route.onConfirm != null) {
-                  widget.route.onConfirm!(widget.pickerModel.finalTime()!);
-                }
-              },
-            ),
-          ),
-        ],
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Text(
+          'Select time',
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: theme.titleColor),
+        ),
       ),
     );
-  }
-
-  String _localeDone() {
-    return i18nObjInLocale(widget.locale)['done'] as String;
-  }
-
-  String _localeCancel() {
-    return i18nObjInLocale(widget.locale)['cancel'] as String;
   }
 }
 
@@ -535,13 +533,11 @@ class _BottomPickerLayout extends SingleChildLayoutDelegate {
   _BottomPickerLayout(
     this.progress,
     this.theme, {
-    this.itemCount,
     this.showTitleActions,
     this.bottomPadding = 0,
   });
 
   final double progress;
-  final int? itemCount;
   final bool? showTitleActions;
   final DatePickerTheme theme;
   final double bottomPadding;
